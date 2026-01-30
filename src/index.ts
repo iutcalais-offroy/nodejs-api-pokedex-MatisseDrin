@@ -2,6 +2,7 @@ import {createServer} from "http";
 import {env} from "./env";
 import express from "express";
 import cors from "cors";
+import {authRouter} from "./routes/auth.routes";
 
 // Create Express app
 export const app = express();
@@ -23,6 +24,9 @@ app.use(express.static('public'));
 app.get("/api/health", (_req, res) => {
     res.json({status: "ok", message: "TCG Backend Server is running"});
 });
+
+// Routes
+app.use("/api/auth", authRouter);
 
 // Start server only if this file is run directly (not imported for tests)
 if (require.main === module) {
