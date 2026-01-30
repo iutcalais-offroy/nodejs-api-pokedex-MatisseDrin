@@ -43,7 +43,6 @@ async function main() {
     }
 
     console.log("✅ Created users:", redUser.username, blueUser.username);
-
     const pokemonDataPath = join(__dirname, "data", "pokemon.json");
     const pokemonJson = readFileSync(pokemonDataPath, "utf-8");
     const pokemonData: CardModel[] = JSON.parse(pokemonJson);
