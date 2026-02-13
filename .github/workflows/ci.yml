@@ -22,7 +22,14 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          rm -rf node_modules
+          npm ci
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: postgresql://tcg_user:tcg_password@localhost:5433/tcg_database
 
       - name: Run linter
         run: npm run lint
@@ -31,7 +38,7 @@ jobs:
         run: npm run format:check
 
       - name: Run type checking
-        run: npm run typecheck
+        run: npm run ts:check
 
       - name: Run tests
         run: npm run test
