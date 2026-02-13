@@ -1,0 +1,157 @@
+paths:
+  /auth/sign-up:
+    post:
+      tags:
+        - Auth
+      summary: Inscription d'un nouvel utilisateur
+      description: |
+        Crée un nouveau compte utilisateur avec un mot de passe hashé (bcrypt)
+        et retourne un token JWT valide pour 7 jours.
+      operationId: signUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Nom d'utilisateur
+                  example: john_doe
+                  minLength: 3
+                email:
+                  type: string
+                  format: email
+                  description: Adresse email (unique)
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  description: Mot de passe (sera hashé)
+                  example: securePassword123
+                  minLength: 6
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Utilisateur créé avec succès
+                  token:
+                    type: string
+                    description: Token JWT valide pour 7 jours
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiam9obl9kb2UiLCJpYXQiOjE2MzQ1Njc4OTAsImV4cCI6MTYzNTE3MjY5MH0.abc123
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      username:
+                        type: string
+                        example: john_doe
+                      email:
+                        type: string
+                        example: john@example.com
+        '400':
+          description: Tous les champs sont requis - Champs manquants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                error: Tous les champs sont requis (username, email, password)
+        '409':
+          description: Un utilisateur avec cet email existe déjà
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Un utilisateur avec cet email existe déjà
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/sign-in:
+    post:
+      tags:
+        - Auth
+      summary: Connexion utilisateur
+      description: |
+        Authentifie un utilisateur existant en vérifiant son email et mot de passe,
+        puis retourne un token JWT valide pour 7 jours.
+      operationId: signIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Adresse email de l'utilisateur
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  description: Mot de passe de l'utilisateur
+                  example: securePassword123
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Connexion réussie
+                  token:
+                    type: string
+                    description: Token JWT valide pour 7 jours
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiam9obl9kb2UiLCJpYXQiOjE2MzQ1Njc4OTAsImV4cCI6MTYzNTE3MjY5MH0.abc123
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      username:
+                        type: string
+                        example: john_doe
+                      email:
+                        type: string
+                        example: john@example.com
+        '400':
+          description: Tous les champs sont requis - Email ou mot de passe manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                error: Tous les champs sont requis (email, password)
+        '401':
+          description: Email ou mot de passe incorrect - Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+              example:
+                error: Email ou mot de passe incorrect
+        '500':
+          $ref: '#/components/responses/ServerError'

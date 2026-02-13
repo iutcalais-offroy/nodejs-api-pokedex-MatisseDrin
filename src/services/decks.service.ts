@@ -135,7 +135,10 @@ export class DecksService {
     name?: string,
     cardId?: number[],
   ) {
-    const updateData: any = {}
+    const updateData: {
+      name?: string
+      deckCard?: { create: { cardId: number }[] }
+    } = {}
     if (name) {
       updateData.name = name
     }

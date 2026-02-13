@@ -2,6 +2,9 @@ import { createServer } from 'http'
 import { env } from './env'
 import express from 'express'
 import cors from 'cors'
+import swaggerUi from 'swagger-ui-express'
+import yaml from 'yamljs'
+import path from 'path'
 import { authRouter } from './routes/auth.routes'
 import { cardsRouter } from './routes/cards.routes'
 import { decksRouter } from './routes/decks.routes'
@@ -22,12 +25,37 @@ app.use(express.json())
 // Serve static files (Socket.io test client)
 app.use(express.static('public'))
 
+// Swagger Documentation Setup
+const swaggerConfig = yaml.load(path.join(__dirname, 'docs/swagger.config.yml'))
+const authDoc = yaml.load(path.join(__dirname, 'docs/auth.doc.yml'))
+const cardDoc = yaml.load(path.join(__dirname, 'docs/cards.doc.yml'))
+const deckDoc = yaml.load(path.join(__dirname, 'docs/decks.doc.yml'))
+
+// Fusionner les documentations
+const swaggerDocument = {
+  ...swaggerConfig,
+  paths: {
+    ...authDoc.paths,
+    ...cardDoc.paths,
+    ...deckDoc.paths,
+  },
+}
+
+// Configuration de Swagger UI
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Pokedex TCG API Documentation',
+  }),
+)
+
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'TCG Backend Server is running' })
 })
 
-// Routes
 app.use('/api/auth', authRouter)
 app.use('/api/cards', cardsRouter)
 app.use('/api/decks', decksRouter)
@@ -41,6 +69,9 @@ if (require.main === module) {
   try {
     httpServer.listen(env.PORT, () => {
       console.log(`\n🚀 Server is running on http://localhost:${env.PORT}`)
+      console.log(
+        `📚 API Documentation available at http://localhost:${env.PORT}/api-docs`,
+      )
       console.log(
         `🧪 Socket.io Test Client available at http://localhost:${env.PORT}`,
       )
