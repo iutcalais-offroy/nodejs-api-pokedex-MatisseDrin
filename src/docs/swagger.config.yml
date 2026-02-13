@@ -1,0 +1,287 @@
+openapi: 3.0.0
+info:
+  title: TCG Pokémon API
+  description: API REST pour la gestion de decks de cartes Pokémon avec authentification JWT
+  version: 1.0.0
+  contact:
+    name: Matisse Drin
+    email: matisse.drin@etu.univ-littoral.fr
+
+servers:
+  - url: http://localhost:3001/api
+    description: Serveur de développement local
+
+tags:
+  - name: Health
+    description: Points de terminaison de santé du serveur
+  - name: Auth
+    description: Authentification et gestion des utilisateurs
+  - name: Cards
+    description: Gestion des cartes Pokémon
+  - name: Decks
+    description: Gestion des decks de cartes
+
+# Configuration de la sécurité JWT
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Authentification par token JWT. 
+        Utilisez le bouton "Authorize" ci-dessus pour configurer votre token.
+        Format: Bearer <votre_token>
+
+  # Schémas réutilisables
+  schemas:
+    # Schéma User
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de l'utilisateur
+          example: 1
+        username:
+          type: string
+          description: Nom d'utilisateur
+          example: john_doe
+        email:
+          type: string
+          format: email
+          description: Adresse email de l'utilisateur
+          example: john@example.com
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création du compte
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière mise à jour
+      required:
+        - id
+        - username
+        - email
+
+    # Schéma Card
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la carte
+          example: 1
+        name:
+          type: string
+          description: Nom du Pokémon
+          example: Bulbasaur
+        hp:
+          type: integer
+          description: Points de vie
+          example: 45
+          minimum: 1
+        attack:
+          type: integer
+          description: Points d'attaque
+          example: 49
+          minimum: 1
+        type:
+          type: string
+          description: Type du Pokémon
+          enum:
+            - Normal
+            - Fire
+            - Water
+            - Electric
+            - Grass
+            - Ice
+            - Fighting
+            - Poison
+            - Ground
+            - Flying
+            - Psychic
+            - Bug
+            - Rock
+            - Ghost
+            - Dragon
+            - Dark
+            - Steel
+            - Fairy
+          example: Grass
+        pokedexNumber:
+          type: integer
+          description: Numéro dans le Pokédex
+          example: 1
+          minimum: 1
+        imgUrl:
+          type: string
+          nullable: true
+          description: URL de l'image de la carte
+          example: https://example.com/bulbasaur.png
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de la carte
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière mise à jour
+      required:
+        - id
+        - name
+        - hp
+        - attack
+        - type
+        - pokedexNumber
+
+    # Schéma Deck
+    Deck:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique du deck
+          example: 1
+        name:
+          type: string
+          description: Nom du deck
+          example: Mon super deck Feu
+        userId:
+          type: integer
+          description: ID de l'utilisateur propriétaire
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création du deck
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière mise à jour
+        deckCard:
+          type: array
+          description: Liste des associations carte-deck
+          items:
+            $ref: '#/components/schemas/DeckCard'
+      required:
+        - id
+        - name
+        - userId
+
+    # Schéma DeckCard
+    DeckCard:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant de l'association
+          example: 1
+        deckId:
+          type: integer
+          description: ID du deck
+          example: 1
+        cardId:
+          type: integer
+          description: ID de la carte
+          example: 5
+        card:
+          $ref: '#/components/schemas/Card'
+      required:
+        - id
+        - deckId
+        - cardId
+
+    # Schéma DeckWithCards (pour les réponses détaillées)
+    DeckWithCards:
+      allOf:
+        - $ref: '#/components/schemas/Deck'
+        - type: object
+          properties:
+            user:
+              type: object
+              properties:
+                id:
+                  type: integer
+                username:
+                  type: string
+                email:
+                  type: string
+
+    # Schémas d'erreur
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur
+          example: Une erreur est survenue
+      required:
+        - error
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur de validation
+          example: Tous les champs sont requis
+
+    AuthError:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur d'authentification
+          example: Token invalide ou expiré
+
+  # Réponses réutilisables
+  responses:
+    UnauthorizedError:
+      description: Non authentifié - Token manquant ou invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthError'
+          examples:
+            noToken:
+              value:
+                error: Token manquant
+            invalidToken:
+              value:
+                error: Token invalide ou expiré
+
+    ForbiddenError:
+      description: Accès refusé - Vous n'avez pas les droits nécessaires
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Vous n'avez pas accès à cette ressource
+
+    NotFoundError:
+      description: Ressource non trouvée
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Ressource introuvable
+
+    ServerError:
+      description: Erreur serveur interne
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Erreur serveur
+
+    ValidationError:
+      description: Erreur de validation des données
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'

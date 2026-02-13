@@ -1,0 +1,324 @@
+paths:
+  /decks:
+    post:
+      tags:
+        - Decks
+      summary: Création d'un nouveau deck
+      description: |
+        Crée un deck de 10 cartes pour l'utilisateur authentifié.
+        Toutes les cartes doivent exister dans la base de données.
+      operationId: createDeck
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - cards
+              properties:
+                name:
+                  type: string
+                  description: Nom du deck
+                  example: Mon super deck Feu
+                  minLength: 1
+                cards:
+                  type: array
+                  description: Tableau de 10 IDs de cartes
+                  minItems: 10
+                  maxItems: 10
+                  items:
+                    type: integer
+                  example: [4, 5, 6, 37, 38, 39, 58, 59, 77, 78]
+      responses:
+        '201':
+          description: Deck créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Deck créé avec succès
+                  deck:
+                    $ref: '#/components/schemas/DeckWithCards'
+        '400':
+          description: Données invalides (champs manquants, nombre de cartes incorrect, cartes inexistantes)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                missingFields:
+                  value:
+                    error: Le nom et les cartes sont requis
+                wrongCount:
+                  value:
+                    error: Un deck doit contenir exactement 10 cartes
+                invalidCards:
+                  value:
+                    error: Certaines cartes n'existent pas
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /decks/mine:
+    get:
+      tags:
+        - Decks
+      summary: Récupération de tous les decks de l'utilisateur
+      description: |
+        Retourne la liste de tous les decks appartenant à l'utilisateur authentifié
+        avec toutes leurs cartes.
+      operationId: getMyDecks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des decks récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeckWithCards'
+              examples:
+                success:
+                  value:
+                    - id: 1
+                      name: Mon deck Feu
+                      userId: 1
+                      createdAt: '2024-01-01T00:00:00.000Z'
+                      updatedAt: '2024-01-01T00:00:00.000Z'
+                      deckCard:
+                        - id: 1
+                          deckId: 1
+                          cardId: 4
+                          card:
+                            id: 4
+                            name: Charmander
+                            hp: 39
+                            attack: 52
+                            type: Fire
+                            pokedexNumber: 4
+                            imgUrl: https://example.com/charmander.png
+                    - id: 2
+                      name: Mon deck Eau
+                      userId: 1
+                      createdAt: '2024-01-02T00:00:00.000Z'
+                      updatedAt: '2024-01-02T00:00:00.000Z'
+                      deckCard:
+                        - id: 11
+                          deckId: 2
+                          cardId: 7
+                          card:
+                            id: 7
+                            name: Squirtle
+                            hp: 44
+                            attack: 48
+                            type: Water
+                            pokedexNumber: 7
+                            imgUrl: https://example.com/squirtle.png
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /decks/{id}:
+    get:
+      tags:
+        - Decks
+      summary: Récupération d'un deck spécifique
+      description: |
+        Retourne les détails d'un deck spécifique avec toutes ses cartes.
+        L'utilisateur ne peut accéder qu'à ses propres decks.
+      operationId: getDeckById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du deck à récupérer
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Détails du deck récupérés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckWithCards'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    name: Mon deck Feu
+                    userId: 1
+                    createdAt: '2024-01-01T00:00:00.000Z'
+                    updatedAt: '2024-01-01T00:00:00.000Z'
+                    user:
+                      id: 1
+                      username: john_doe
+                      email: john@example.com
+                    deckCard:
+                      - id: 1
+                        deckId: 1
+                        cardId: 4
+                        card:
+                          id: 4
+                          name: Charmander
+                          hp: 39
+                          attack: 52
+                          type: Fire
+                          pokedexNumber: 4
+                          imgUrl: https://example.com/charmander.png
+                      - id: 2
+                        deckId: 1
+                        cardId: 5
+                        card:
+                          id: 5
+                          name: Charmeleon
+                          hp: 58
+                          attack: 64
+                          type: Fire
+                          pokedexNumber: 5
+                          imgUrl: https://example.com/charmeleon.png
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    patch:
+      tags:
+        - Decks
+      summary: Mise à jour d'un deck
+      description: |
+        Met à jour le nom et/ou les cartes d'un deck existant.
+        L'utilisateur ne peut modifier que ses propres decks.
+      operationId: updateDeck
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du deck à mettre à jour
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nouveau nom du deck (optionnel)
+                  example: Mon deck Feu amélioré
+                cards:
+                  type: array
+                  description: Nouveau tableau de 10 IDs de cartes (optionnel)
+                  minItems: 10
+                  maxItems: 10
+                  items:
+                    type: integer
+                  example: [4, 5, 6, 37, 38, 39, 58, 59, 146, 147]
+            examples:
+              updateName:
+                summary: Mettre à jour uniquement le nom
+                value:
+                  name: Mon deck Feu version 2
+              updateCards:
+                summary: Mettre à jour uniquement les cartes
+                value:
+                  cards: [4, 5, 6, 37, 38, 39, 58, 59, 146, 147]
+              updateBoth:
+                summary: Mettre à jour le nom et les cartes
+                value:
+                  name: Mon deck Feu ultime
+                  cards: [4, 5, 6, 37, 38, 39, 58, 59, 146, 147]
+      responses:
+        '200':
+          description: Deck mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Deck mis à jour avec succès
+                  deck:
+                    $ref: '#/components/schemas/DeckWithCards'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                wrongCount:
+                  value:
+                    error: Un deck doit contenir exactement 10 cartes
+                invalidCards:
+                  value:
+                    error: Certaines cartes n'existent pas
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Decks
+      summary: Suppression d'un deck
+      description: |
+        Supprime définitivement un deck et toutes ses associations de cartes.
+        L'utilisateur ne peut supprimer que ses propres decks.
+      operationId: deleteDeck
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du deck à supprimer
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Deck supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Deck supprimé avec succès
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/ServerError'

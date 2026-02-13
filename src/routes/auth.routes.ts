@@ -43,11 +43,9 @@ authRouter.post('/sign-up', async (req: Request, res: Response) => {
 
   try {
     if (!username || !email || !password) {
-      return res
-        .status(400)
-        .json({
-          error: 'Tous les champs sont requis (username, email, password)',
-        })
+      return res.status(400).json({
+        error: 'Tous les champs sont requis (username, email, password)',
+      })
     }
 
     const existingUser = await prisma.user.findUnique({
