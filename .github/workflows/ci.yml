@@ -26,6 +26,9 @@ jobs:
           rm -rf node_modules
           npm ci
 
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
       - name: Run linter
         run: npm run lint
 
