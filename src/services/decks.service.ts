@@ -34,7 +34,9 @@ export class DecksService {
       },
     })
 
-    const existingIds = new Set(existingCards.map((card) => card.id))
+    const existingIds = new Set(
+      existingCards.map((card: { id: number }) => card.id),
+    )
     const allIdsExist = cardId.every((id) => existingIds.has(id))
 
     if (!allIdsExist) {
@@ -151,7 +153,9 @@ export class DecksService {
           id: { in: cardId },
         },
       })
-      const existingIds = new Set(existingCards.map((card) => card.id))
+      const existingIds = new Set(
+        existingCards.map((card: { id: number }) => card.id),
+      )
       const allIdsExist = cardId.every((id) => existingIds.has(id))
       if (!allIdsExist) {
         throw new Error('ERREUR_CARTES_INVALIDES')
