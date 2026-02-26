@@ -102,7 +102,8 @@ function getRooms() {
 function createRoom() {
   if (!socket) return alert('Not connected')
   const deckId = parseInt(document.getElementById('createRoomDeckId').value)
-  if (!deckId || isNaN(deckId)) return alert('Deck ID required and must be a number')
+  if (!deckId || isNaN(deckId))
+    return alert('Deck ID required and must be a number')
 
   const data = { deckId }
   log(`➡️ createRoom: ${JSON.stringify(data)}`, 'sent')
