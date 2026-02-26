@@ -1,6 +1,6 @@
 import { GameRoom, PublicRoom, GameCard, PlayerData } from '../types/game.types'
 import { v4 as uuidv4 } from 'uuid'
-import { Card } from '../generated/prisma/models/Card'
+import { Card } from '../generated/prisma/client'
 
 /**
  * Gestionnaire des rooms de jeu
