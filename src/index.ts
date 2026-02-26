@@ -10,6 +10,7 @@ import { authRouter } from './routes/auth.routes'
 import { cardsRouter } from './routes/cards.routes'
 import { decksRouter } from './routes/decks.routes'
 import { authenticateSocket } from './middlewares/auth.middleware'
+import { setupMatchmakingEvents } from './sockets/matchmaking.socket'
 
 // Create Express app
 export const app = express()
@@ -78,25 +79,8 @@ if (require.main === module) {
   // Apply authentication middleware to all Socket.io connections
   io.use(authenticateSocket)
 
-  // Handle Socket.io connections
-  io.on('connection', (socket) => {
-    console.log(
-      `✅ User connected via Socket.io - userId: ${socket.userId}, email: ${socket.email}`,
-    )
-
-    // Send welcome message with user info
-    socket.emit('authenticated', {
-      userId: socket.userId,
-      email: socket.email,
-      message: 'Successfully authenticated',
-    })
-
-    socket.on('disconnect', () => {
-      console.log(
-        `❌ User disconnected - userId: ${socket.userId}, email: ${socket.email}`,
-      )
-    })
-  })
+  // Setup matchmaking events
+  setupMatchmakingEvents(io)
 
   // Start server
   try {

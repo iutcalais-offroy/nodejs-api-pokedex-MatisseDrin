@@ -70,7 +70,12 @@
             <h3>CREATE_ROOM</h3>
             <div class="form-row">
               <label>Deck ID:</label>
-              <input id="createRoomDeckId" placeholder="deck-id" type="text" />
+              <input
+                id="createRoomDeckId"
+                placeholder="1"
+                type="number"
+                min="1"
+              />
             </div>
             <button onclick="createRoom()">Create Room</button>
           </div>
@@ -83,7 +88,12 @@
             </div>
             <div class="form-row">
               <label>Deck ID:</label>
-              <input id="joinRoomDeckId" placeholder="deck-id" type="text" />
+              <input
+                id="joinRoomDeckId"
+                placeholder="1"
+                type="number"
+                min="1"
+              />
             </div>
             <button onclick="joinRoom()">Join Room</button>
           </div>
