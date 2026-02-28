@@ -135,6 +135,7 @@ class RoomManager {
       deck: player1Deck,
       bench: [],
       active: null,
+      score: 0,
     }
 
     const player2: PlayerData = {
@@ -147,12 +148,13 @@ class RoomManager {
       deck: player2Deck,
       bench: [],
       active: null,
+      score: 0,
     }
 
     room.gameState = {
       player1,
       player2,
-      currentTurn: room.host.userId, // Le host commence
+      currentTurn: room.host.userId,
       turnNumber: 1,
     }
   }
@@ -177,14 +179,14 @@ class RoomManager {
   }
 
   /**
-   * Nettoie toutes les rooms (utile pour les tests)
+   * Nettoie toutes les rooms
    */
   clearAllRooms(): void {
     this.rooms.clear()
   }
 
   /**
-   * Récupère toutes les rooms (pour debug)
+   * Récupère toutes les rooms
    */
   getAllRooms(): GameRoom[] {
     return Array.from(this.rooms.values())

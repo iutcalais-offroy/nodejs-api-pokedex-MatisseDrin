@@ -1,3 +1,5 @@
+import { PokemonType } from '../generated/prisma/client'
+
 /**
  * État d'une carte dans le jeu
  */
@@ -6,10 +8,10 @@ export interface GameCard {
   name: string
   hp: number
   attack: number
-  type: string
+  type: PokemonType
   pokedexNumber: number
   imgUrl: string | null
-  currentHp?: number // HP actuel (peut être différent du HP max)
+  currentHp: number
 }
 
 /**
@@ -21,10 +23,11 @@ export interface PlayerData {
   email: string
   socketId: string
   deckId: number
-  hand: GameCard[] // Cartes en main
-  deck: GameCard[] // Cartes restantes dans le deck
-  bench: GameCard[] // Pokémon sur le banc
-  active: GameCard | null // Pokémon actif
+  hand: GameCard[]
+  deck: GameCard[]
+  bench: GameCard[]
+  active: GameCard | null
+  score: number
 }
 
 /**
@@ -51,13 +54,13 @@ export interface GameRoom {
   gameState?: {
     player1: PlayerData
     player2: PlayerData
-    currentTurn: number // userId du joueur dont c'est le tour
+    currentTurn: number
     turnNumber: number
   }
 }
 
 /**
- * Vue publique d'une room (pour la liste)
+ * Vue publique d'une room
  */
 export interface PublicRoom {
   roomId: string
@@ -72,18 +75,24 @@ export interface PublicRoom {
  */
 export interface PlayerGameState {
   roomId: string
-  yourTurn: boolean
+  currentTurn: number
   turnNumber: number
   you: {
+    userId: number
+    username: string
     hand: GameCard[]
-    deck: number // Nombre de cartes restantes (pas le contenu)
+    deck: GameCard[]
     bench: GameCard[]
     active: GameCard | null
+    score: number
   }
   opponent: {
-    hand: number // Nombre de cartes (pas le contenu)
-    deck: number
+    userId: number
+    username: string
+    handCount: number
+    deckCount: number
     bench: GameCard[]
     active: GameCard | null
+    score: number
   }
 }
