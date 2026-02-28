@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io'
 import { roomManager } from '../services/room.service'
 import { prisma } from '../database'
 import { PlayerGameState } from '../types/game.types'
+import { setupGameEvents } from './game.socket'
 
 /**
  * Configure les événements Socket.io pour le matchmaking
@@ -18,6 +19,9 @@ export function setupMatchmakingEvents(io: Server) {
       email: socket.email,
       message: 'Successfully authenticated',
     })
+
+    // Configure les événements de jeu
+    setupGameEvents(io, socket)
 
     /**
      * Événement: createRoom
@@ -253,38 +257,50 @@ export function setupMatchmakingEvents(io: Server) {
         // État pour le host (player1)
         const hostGameState: PlayerGameState = {
           roomId: updatedRoom.roomId,
-          yourTurn: gameState.currentTurn === gameState.player1.userId,
+          currentTurn: gameState.currentTurn,
           turnNumber: gameState.turnNumber,
           you: {
+            userId: gameState.player1.userId,
+            username: gameState.player1.username,
             hand: gameState.player1.hand,
-            deck: gameState.player1.deck.length,
+            deck: gameState.player1.deck,
             bench: gameState.player1.bench,
             active: gameState.player1.active,
+            score: gameState.player1.score,
           },
           opponent: {
-            hand: gameState.player2.hand.length, // Nombre de cartes seulement
-            deck: gameState.player2.deck.length,
+            userId: gameState.player2.userId,
+            username: gameState.player2.username,
+            handCount: gameState.player2.hand.length,
+            deckCount: gameState.player2.deck.length,
             bench: gameState.player2.bench,
             active: gameState.player2.active,
+            score: gameState.player2.score,
           },
         }
 
         // État pour le guest (player2)
         const guestGameState: PlayerGameState = {
           roomId: updatedRoom.roomId,
-          yourTurn: gameState.currentTurn === gameState.player2.userId,
+          currentTurn: gameState.currentTurn,
           turnNumber: gameState.turnNumber,
           you: {
+            userId: gameState.player2.userId,
+            username: gameState.player2.username,
             hand: gameState.player2.hand,
-            deck: gameState.player2.deck.length,
+            deck: gameState.player2.deck,
             bench: gameState.player2.bench,
             active: gameState.player2.active,
+            score: gameState.player2.score,
           },
           opponent: {
-            hand: gameState.player1.hand.length, // Nombre de cartes seulement
-            deck: gameState.player1.deck.length,
+            userId: gameState.player1.userId,
+            username: gameState.player1.username,
+            handCount: gameState.player1.hand.length,
+            deckCount: gameState.player1.deck.length,
             bench: gameState.player1.bench,
             active: gameState.player1.active,
+            score: gameState.player1.score,
           },
         }
 
